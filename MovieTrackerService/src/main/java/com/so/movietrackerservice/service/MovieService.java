@@ -1,0 +1,10 @@
+package com.so.movietrackerservice.service;
+
+import com.so.movietrackerservice.domain.db.Movie;
+import com.so.movietrackerservice.domain.db.MovieRating;
+import org.springframework.transaction.annotation.Transactional;
+
+public interface MovieService {
+    @Transactional
+    MovieRating createMovieRating(Movie movie, Long chatId, float rating);
+}

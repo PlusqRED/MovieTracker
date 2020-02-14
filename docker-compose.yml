@@ -1,0 +1,25 @@
+version: "3.3"
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=tracker
+      - POSTGRES_USER=tracker
+      - POSTGRES_DB=tracker
+    restart: on-failure
+  # --------------- SERVICES  ---------------
+  movietrackerservice:
+    build:
+      context: MovieTrackerService
+    container_name: movietrackerservice
+    ports:
+      - 8080:8080
+    environment:
+      - BOT_TOKEN=878750547:AAH6aVtsBP-orCS0I-3gjXxg_oJrtZuUII4
+      - SPRING_APPLICATION_NAME=movietrackerservice
+    restart: always
+    depends_on:
+      - postgres
