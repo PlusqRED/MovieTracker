@@ -18,20 +18,20 @@ public class DefaultMovieService implements MovieService {
     private final MovieRepository movieRepository;
 
     @Override
-    public MovieRating createMovieRating(Movie orElseMovie, Long chatId, float rating) {
-        Optional<MovieRating> optionalMovieRating = movieRatingRepository.findMovieRatingByChatIdAndMovieTitle(chatId, orElseMovie.getTitle());
+    public MovieRating createMovieRating(Movie inputMovie, Long chatId, float rating) {
+        Optional<MovieRating> optionalMovieRating = movieRatingRepository.findMovieRatingByChatIdAndMovieTitle(chatId, inputMovie.getTitle());
         if (optionalMovieRating.isPresent()) {
             return updateExistingMovieRating(rating, optionalMovieRating.get());
-        } else {
-            Optional<Movie> movieOptional = movieRepository.findByTitle(orElseMovie.getTitle());
-            Movie movie = movieOptional.orElse(orElseMovie);
-            return movieRatingRepository.save(MovieRating.builder()
-                    .chatId(chatId)
-                    .creationDateTime(LocalDateTime.now())
-                    .movie(movie)
-                    .rating(rating)
-                    .build());
         }
+        Optional<Movie> movieOptional = movieRepository.findByTitle(inputMovie.getTitle());
+        Movie movie = movieOptional.orElse(inputMovie);
+        return movieRatingRepository.save(MovieRating.builder()
+                .chatId(chatId)
+                .creationDateTime(LocalDateTime.now())
+                .movie(movie)
+                .rating(rating)
+                .build());
+
     }
 
     private MovieRating updateExistingMovieRating(float rating, MovieRating movieRating) {

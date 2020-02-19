@@ -4,10 +4,11 @@ import com.google.common.cache.Cache;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
+import com.so.movietrackerservice.domain.DialogStage;
 import com.so.movietrackerservice.domain.Session;
 import com.so.movietrackerservice.domain.db.MovieRating;
 import com.so.movietrackerservice.repository.MovieRatingRepository;
-import com.so.movietrackerservice.service.QueryProcessor;
+import com.so.movietrackerservice.service.DialogProcessor;
 import com.so.movietrackerservice.utils.TelegramBotUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
@@ -16,20 +17,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
 @Component
 @RequiredArgsConstructor
-public class TopMovieProcessor implements QueryProcessor {
+//todo when there is ANOTHER ONE than extract everything except messages into ANOTHER class
+public class TopMovieDialogProcessor implements DialogProcessor {
+    private final static String AMOUNT = "amount";
     private final Cache<Long, Session> userSessions;
     private final TelegramBotUtils telegramBotUtils;
     private final MovieRatingRepository movieRatingRepository;
-    private final List<String> processingPatterns = new ArrayList<>() {{
-        add("Топ");
-    }};
+    private final List<String> processingPatterns = Collections.singletonList("Топ");
     private Keyboard keyboard = new ReplyKeyboardMarkup(
             new String[][]{{"10", "30", "50", "Все"}, {"Отмена"}},
             false,
@@ -38,8 +39,8 @@ public class TopMovieProcessor implements QueryProcessor {
     );
 
     @Override
-    public void process(Update update) {
-        Session session = new Session(this, Token.AMOUNT);
+    public void start(Update update) {
+        Session session = new Session(this, DialogStage.builder().stageName(AMOUNT).build());
         userSessions.put(update.message().chat().id(), session);
         telegramBotUtils.sendMessage(
                 "Выберите количество",
@@ -54,7 +55,7 @@ public class TopMovieProcessor implements QueryProcessor {
         if (checkCancel(update, telegramBotUtils, userSessions)) {
             return;
         }
-        if (validateToken(session).equals(Token.AMOUNT)) {
+        if (session.getDialogStage().getStageName().equalsIgnoreCase(AMOUNT)) {
             continueFromAmount(update, chatId);
         }
     }
@@ -84,20 +85,8 @@ public class TopMovieProcessor implements QueryProcessor {
                 .collect(joining(Strings.LINE_SEPARATOR));
     }
 
-    private Object validateToken(Session session) {
-        Object token = session.getToken();
-        if (!(token instanceof TopMovieProcessor.Token)) {
-            throw new IllegalArgumentException("Unsupported token!");
-        }
-        return token;
-    }
-
     @Override
     public List<String> getProcessingPatterns() {
         return processingPatterns;
-    }
-
-    private enum Token {
-        AMOUNT
     }
 }
