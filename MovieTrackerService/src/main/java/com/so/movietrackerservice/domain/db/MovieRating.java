@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -18,9 +19,13 @@ public class MovieRating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long chatId;
+
     private Float rating;
     private LocalDateTime creationDateTime;
+
+    @JoinColumn(name = "bot_user_id")
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private BotUser botUser;
 
     @JoinColumn(name = "movie_id")
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -29,5 +34,19 @@ public class MovieRating {
     @Override
     public String toString() {
         return movie.getTitle() + " - [" + rating + "]";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MovieRating that = (MovieRating) o;
+        return rating.equals(that.rating) &&
+                movie.equals(that.movie);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rating, movie);
     }
 }

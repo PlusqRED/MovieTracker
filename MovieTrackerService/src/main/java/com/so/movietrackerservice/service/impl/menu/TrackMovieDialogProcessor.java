@@ -1,4 +1,4 @@
-package com.so.movietrackerservice.service.impl;
+package com.so.movietrackerservice.service.impl.menu;
 
 import com.google.common.cache.Cache;
 import com.pengrad.telegrambot.model.Update;

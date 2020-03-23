@@ -10,8 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface MovieRatingRepository extends JpaRepository<MovieRating, Long> {
+    Optional<MovieRating> findMovieRatingByBotUserIdAndMovieTitle(Long chatId, String title);
 
-    Optional<MovieRating> findMovieRatingByChatIdAndMovieTitle(Long chatId, String title);
+    List<MovieRating> findAllByBotUserId(Long chatId, Pageable pageable);
 
-    List<MovieRating> findAllByChatId(Long chatId, Pageable pageable);
+
 }

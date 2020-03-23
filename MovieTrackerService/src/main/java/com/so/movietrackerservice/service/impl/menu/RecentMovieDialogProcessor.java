@@ -1,4 +1,4 @@
-package com.so.movietrackerservice.service.impl;
+package com.so.movietrackerservice.service.impl.menu;
 
 import com.google.common.cache.Cache;
 import com.pengrad.telegrambot.model.Update;
@@ -24,13 +24,12 @@ import static java.util.stream.Collectors.joining;
 
 @Component
 @RequiredArgsConstructor
-//todo when there is ANOTHER ONE than extract everything except messages into ANOTHER class
-public class TopMovieDialogProcessor implements DialogProcessor {
-    private final static String AMOUNT = "amount";
+public class RecentMovieDialogProcessor implements DialogProcessor {
+    private static final String AMOUNT = "amount";
     private final Cache<Long, Session> userSessions;
     private final TelegramBotUtils telegramBotUtils;
     private final MovieRatingRepository movieRatingRepository;
-    private final List<String> processingPatterns = Collections.singletonList("Топ");
+    private final List<String> processingPatterns = Collections.singletonList("Последние");
     private Keyboard keyboard = new ReplyKeyboardMarkup(
             new String[][]{{"10", "30", "50", "Все"}, {"Отмена"}},
             false,
@@ -40,7 +39,8 @@ public class TopMovieDialogProcessor implements DialogProcessor {
 
     @Override
     public void start(Update update) {
-        Session session = new Session(this, DialogStage.builder().stageName(AMOUNT).build());
+        DialogStage startStage = DialogStage.builder().stageName(AMOUNT).build();
+        Session session = new Session(this, startStage);
         userSessions.put(update.message().chat().id(), session);
         telegramBotUtils.sendMessage(
                 "Выберите количество",
@@ -60,33 +60,37 @@ public class TopMovieDialogProcessor implements DialogProcessor {
         }
     }
 
-    private void continueFromAmount(Update update, Long chatId) {
-        int amount;
-        try {
-            amount = update.message().text().equalsIgnoreCase("все")
-                    ? Integer.MAX_VALUE
-                    : Integer.parseInt(update.message().text());
-        } catch (NumberFormatException ignored) {
-            telegramBotUtils.sendMessage("Некорректный рейтинг, попробуйте снова", chatId, keyboard);
-            return;
-        }
-        String resultList = getTopMoviesStringResult(chatId, amount);
-        String response = resultList.isEmpty()
-                ? "Список пуст"
-                : String.format("Ваш топ фильмов %s: \n%s", amount == Integer.MAX_VALUE ? "Все" : amount, resultList);
-        telegramBotUtils.sendMessage(response, chatId, null);
-        userSessions.invalidate(chatId);
-    }
-
-    private String getTopMoviesStringResult(Long chatId, int amount) {
-        Pageable pageable = PageRequest.of(0, amount, Sort.by(Sort.Direction.DESC, "rating"));
-        return movieRatingRepository.findAllByChatId(chatId, pageable).stream()
-                .map(MovieRating::toString)
-                .collect(joining(Strings.LINE_SEPARATOR));
-    }
-
     @Override
     public List<String> getProcessingPatterns() {
         return processingPatterns;
+    }
+
+    private void continueFromAmount(Update update, Long chatId) {
+        int amount;
+        try {
+            amount = "все".equalsIgnoreCase(update.message().text())
+                    ? Integer.MAX_VALUE
+                    : Integer.parseInt(update.message().text());
+        } catch (NumberFormatException ignored) {
+            telegramBotUtils.sendMessage("Некорректное количество, попробуйте снова", chatId, keyboard);
+            return;
+        }
+        String resultList = getRecentMoviesResultString(chatId, amount);
+        String response = resultList.isEmpty()
+                ? "Список пуст"
+                : String.format("Последние фильмы %s: \n%s", amount == Integer.MAX_VALUE ? "Все" : amount, resultList);
+        telegramBotUtils.sendMessage(
+                response,
+                chatId,
+                null
+        );
+        userSessions.invalidate(chatId);
+    }
+
+    private String getRecentMoviesResultString(Long chatId, int amount) {
+        Pageable pageable = PageRequest.of(0, amount, Sort.by(Sort.Direction.DESC, "creationDateTime"));
+        return movieRatingRepository.findAllByBotUserId(chatId, pageable).stream()
+                .map(MovieRating::toString)
+                .collect(joining(Strings.LINE_SEPARATOR));
     }
 }
