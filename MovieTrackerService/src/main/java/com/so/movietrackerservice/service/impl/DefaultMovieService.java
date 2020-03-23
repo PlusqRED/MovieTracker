@@ -44,7 +44,7 @@ public class DefaultMovieService implements MovieService {
     }
 
     @Override
-    public List<MovieRating> performDatabaseRecommendationAlgorithm(List<MovieRating> movieRatings, long chatId) {
+    public List<MovieRating> performDatabaseRecommendationAlgorithm(List<MovieRating> movieRatings, long chatId, int minOverlaps) {
         List<BotUser> botUsers = botUserRepository.findAll();
         botUsers.removeIf(botUser -> botUser.getId().equals(chatId));
         List<MovieRating> result = new ArrayList<>();
@@ -54,7 +54,7 @@ public class DefaultMovieService implements MovieService {
                 Set<MovieRating> listOverlaps = allByBotUserChatId.stream()
                         .filter(movieRatings::contains)
                         .collect(Collectors.toSet());
-                if (listOverlaps.size() != 0) {
+                if (listOverlaps.size() >= minOverlaps) {
                     allByBotUserChatId.removeAll(listOverlaps);
                     result.addAll(allByBotUserChatId);
                 }

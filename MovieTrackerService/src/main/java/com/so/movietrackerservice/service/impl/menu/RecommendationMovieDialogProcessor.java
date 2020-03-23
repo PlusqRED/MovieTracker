@@ -12,6 +12,7 @@ import com.so.movietrackerservice.service.DialogProcessor;
 import com.so.movietrackerservice.service.MovieService;
 import com.so.movietrackerservice.utils.TelegramBotUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
@@ -23,12 +24,18 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class RecommendationMovieDialogProcessor implements DialogProcessor {
-    private final static double MIN_RECOMMENDATION_RATING = 0.8d;
     private final Cache<Long, Session> userSessions;
     private final MovieService movieService;
     private final TelegramBotUtils telegramBotUtils;
     private final MovieRatingRepository movieRatingRepository;
     private final BotUserRepository botUserRepository;
+
+    @Value("${min.recommendation.overlaps}")
+    private String minRecommendationOverlaps;
+
+    @Value("${min.recommendation.rating}")
+    private String minRecommendationRating;
+
     private Keyboard keyboard = new ReplyKeyboardMarkup(
             new String[][]{{"По моим оценкам", "Наши рекомендации", "Все"}, {"Отмена"}},
             false,
@@ -74,7 +81,7 @@ public class RecommendationMovieDialogProcessor implements DialogProcessor {
     private String recommendationMoviesFromLocalServiceRatingSystem(Long chatId) {
         List<MovieRating> movieRatings = movieRatingRepository.findAllByBotUserId(chatId, Pageable.unpaged());
         if (!movieRatings.isEmpty()) {
-            List<MovieRating> result = movieService.performDatabaseRecommendationAlgorithm(movieRatings, chatId);
+            List<MovieRating> result = movieService.performDatabaseRecommendationAlgorithm(movieRatings, chatId, Integer.parseInt(minRecommendationOverlaps));
             if (result.isEmpty()) {
                 return "Совпадений с другими пользователями не найдено :(";
             }
@@ -83,7 +90,7 @@ public class RecommendationMovieDialogProcessor implements DialogProcessor {
                     .collect(Collectors.groupingBy(movieRating -> movieRating.getMovie().getTitle(), Collectors.averagingDouble(MovieRating::getRating)));
             return recommendations.entrySet()
                     .stream()
-                    .filter(stringDoubleEntry -> stringDoubleEntry.getValue() > MIN_RECOMMENDATION_RATING)
+                    .filter(stringDoubleEntry -> stringDoubleEntry.getValue() > Double.parseDouble(minRecommendationRating))
                     .map(movieRatingListEntry -> movieRatingListEntry.getKey() + " - " + String.format("[%.2f]", movieRatingListEntry.getValue()))
                     .collect(Collectors.joining("\n"));
         } else {
