@@ -5,6 +5,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.so.movietrackerservice.domain.Session;
+import com.so.movietrackerservice.service.BotUserService;
 import com.so.movietrackerservice.service.DialogProcessor;
 import com.so.movietrackerservice.service.QueryService;
 import com.so.movietrackerservice.utils.TelegramBotUtils;
@@ -22,6 +23,7 @@ public class DefaultQueryService implements QueryService {
     private final List<DialogProcessor> processors;
     private final TelegramBotUtils telegramBotUtils;
     private final Cache<Long, Session> userSessions;
+    private final BotUserService botUserService;
     private final TelegramBot bot;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -39,6 +41,7 @@ public class DefaultQueryService implements QueryService {
     @Override
     public void inspect(Update update) {
         Long chatId = update.message().chat().id();
+        botUserService.createUserIfDoesntExist(chatId);
         Session session = userSessions.getIfPresent(chatId);
         if (session != null) {
             session.getCurrentProcessor().continueProcessing(session, update);
