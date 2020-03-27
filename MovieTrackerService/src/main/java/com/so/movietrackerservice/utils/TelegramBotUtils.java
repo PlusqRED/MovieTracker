@@ -21,7 +21,7 @@ public class TelegramBotUtils {
 
     private Keyboard createDefaultKeyboard() {
         return new ReplyKeyboardMarkup(
-                new String[][]{{"Оценить фильм"}, {"Топ"}, {"Последние"}, {"Рекомендации"}},
+                new String[][]{{"Оценить фильм"}, {"Топ"}, {"Последние"}, {"Рекомендации"}, {"Другое"}},
                 false,
                 false,
                 false);

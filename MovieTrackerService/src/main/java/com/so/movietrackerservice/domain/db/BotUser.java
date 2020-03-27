@@ -18,5 +18,7 @@ public class BotUser {
     @Id
     private Long id; // telegram chat id
 
+    private String chromeExtensionToken;
+
     private LocalDateTime lastTracking;
 }
