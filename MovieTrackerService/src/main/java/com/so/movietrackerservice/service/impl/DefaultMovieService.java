@@ -1,5 +1,6 @@
 package com.so.movietrackerservice.service.impl;
 
+import com.so.movietrackerservice.domain.RequestMovie;
 import com.so.movietrackerservice.domain.db.BotUser;
 import com.so.movietrackerservice.domain.db.Movie;
 import com.so.movietrackerservice.domain.db.MovieRating;
@@ -33,7 +34,8 @@ public class DefaultMovieService implements MovieService {
         }
         Optional<Movie> movieOptional = movieRepository.findByTitle(inputMovie.getTitle());
         Movie movie = movieOptional.orElse(inputMovie);
-        BotUser botUser = botUserRepository.save(BotUser.builder().id(chatId).lastTracking(LocalDateTime.now()).build());
+        BotUser botUser = botUserRepository.findById(chatId).get();
+        botUser.setLastTracking(LocalDateTime.now());
         return movieRatingRepository.save(MovieRating.builder()
                 .botUser(botUser)
                 .creationDateTime(LocalDateTime.now())
@@ -69,6 +71,23 @@ public class DefaultMovieService implements MovieService {
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean createMovieRatingUsingChromeToken(RequestMovie requestMovie, String token) {
+        if (requestMovie == null || token == null) {
+            return false;
+        }
+        Optional<BotUser> byChromeExtensionToken = botUserRepository.findByChromeExtensionToken(token);
+        if (byChromeExtensionToken.isEmpty()) {
+            return false;
+        }
+        // calling public method from public method, ye.. i know........ .. . .
+        createMovieRating(Movie.builder().title(requestMovie.getTitle()).build(),
+                byChromeExtensionToken.get().getId(),
+                requestMovie.getRating()
+        );
+        return true;
     }
 
     private MovieRating updateExistingMovieRating(float rating, MovieRating movieRating) {

@@ -1,5 +1,6 @@
 package com.so.movietrackerservice.service;
 
+import com.so.movietrackerservice.domain.RequestMovie;
 import com.so.movietrackerservice.domain.db.Movie;
 import com.so.movietrackerservice.domain.db.MovieRating;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,5 +18,8 @@ public interface MovieService {
             int minOverlaps,
             int maxRecommendationListSize
     );
+
+    @Transactional
+    boolean createMovieRatingUsingChromeToken(RequestMovie requestMovie, String token);
 
 }
