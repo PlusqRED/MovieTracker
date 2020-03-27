@@ -27,7 +27,7 @@ public class DefaultMovieService implements MovieService {
 
     @Override
     public MovieRating createMovieRating(Movie inputMovie, Long chatId, float rating) {
-        Optional<MovieRating> optionalMovieRating = movieRatingRepository.findMovieRatingByBotUserIdAndMovieTitle(chatId, inputMovie.getTitle());
+        Optional<MovieRating> optionalMovieRating = movieRatingRepository.findMovieRatingByBotUserIdAndMovieTitleIgnoreCase(chatId, inputMovie.getTitle());
         if (optionalMovieRating.isPresent()) {
             return updateExistingMovieRating(rating, optionalMovieRating.get());
         }
@@ -44,7 +44,12 @@ public class DefaultMovieService implements MovieService {
     }
 
     @Override
-    public List<MovieRating> performDatabaseRecommendationAlgorithm(List<MovieRating> movieRatings, long chatId, int minOverlaps) {
+    public List<MovieRating> performDatabaseRecommendationAlgorithm(
+            List<MovieRating> movieRatings,
+            long chatId,
+            int minOverlaps,
+            int maxRecommendationListSize
+    ) {
         List<BotUser> botUsers = botUserRepository.findAll();
         botUsers.removeIf(botUser -> botUser.getId().equals(chatId));
         List<MovieRating> result = new ArrayList<>();
@@ -57,6 +62,9 @@ public class DefaultMovieService implements MovieService {
                 if (listOverlaps.size() >= minOverlaps) {
                     allByBotUserChatId.removeAll(listOverlaps);
                     result.addAll(allByBotUserChatId);
+                    if (result.size() >= maxRecommendationListSize) {
+                        break;
+                    }
                 }
             }
         }

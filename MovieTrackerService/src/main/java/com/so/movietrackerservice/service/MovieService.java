@@ -11,5 +11,11 @@ public interface MovieService {
     MovieRating createMovieRating(Movie movie, Long chatId, float rating);
 
     @Transactional
-    List<MovieRating> performDatabaseRecommendationAlgorithm(List<MovieRating> movieRatings, long chatId, int minOverlaps);
+    List<MovieRating> performDatabaseRecommendationAlgorithm(
+            List<MovieRating> movieRatings,
+            long chatId,
+            int minOverlaps,
+            int maxRecommendationListSize
+    );
+
 }
