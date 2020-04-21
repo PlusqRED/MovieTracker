@@ -35,6 +35,6 @@ public class MovieTimeCode {
 
     @Override
     public String toString() {
-        return movie.getTitle() + " - " + hours + ":" + minutes + ":" + seconds + " | Начато: " + startWatch.format(dateTimeFormatter);
+        return String.format("%s - %d:%02d:%02d | Начато: %s", movie.getTitle(), hours, minutes, seconds, startWatch.format(dateTimeFormatter));
     }
 }
