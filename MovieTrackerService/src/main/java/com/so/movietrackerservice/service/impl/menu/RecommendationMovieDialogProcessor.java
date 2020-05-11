@@ -18,10 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -117,6 +114,7 @@ public class RecommendationMovieDialogProcessor implements DialogProcessor {
 
     private String getFormattedTheMovieDbApiMovies(List<TheMovieDbApiMovie> theMovieDbApiMovies) {
         return "Рекомендации: \n" + theMovieDbApiMovies.stream()
+                .filter(Objects::nonNull)
                 .map(TheMovieDbApiMovie::toString)
                 .collect(joining("\n"));
     }

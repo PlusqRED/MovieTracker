@@ -61,6 +61,6 @@ public class TheMovieDbApiMovie {
         return title + " - ["
                 + (voteAverage == null ? "неизвестно" : voteAverage)
                 + "] | "
-                + releaseDate.getYear();
+                + (releaseDate == null ? "???? г." : releaseDate.getYear());
     }
 }

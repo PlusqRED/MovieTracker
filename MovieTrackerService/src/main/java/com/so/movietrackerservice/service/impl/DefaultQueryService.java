@@ -32,9 +32,13 @@ public class DefaultQueryService implements QueryService {
     }
 
     private int serviceUpdates(List<Update> updates) {
-        updates.stream()
-                .filter(update -> update.message().text() != null)
-                .forEach(this::inspect);
+        try {
+            updates.stream()
+                    .filter(update -> update.message().text() != null)
+                    .forEach(this::inspect);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
